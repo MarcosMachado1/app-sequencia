@@ -1,0 +1,28 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background premium gradient -->
+  <rect width="512" height="512" rx="120" fill="url(#gradient)"/>
+  
+  <!-- Sequencia symbol - minimalist chain/sequence -->
+  <g transform="translate(256, 256)">
+    <!-- Circle 1 -->
+    <circle cx="-80" cy="0" r="45" fill="none" stroke="white" stroke-width="12" opacity="0.4"/>
+    <!-- Circle 2 - highlighted -->
+    <circle cx="0" cy="0" r="50" fill="none" stroke="white" stroke-width="14"/>
+    <!-- Circle 3 -->
+    <circle cx="80" cy="0" r="45" fill="none" stroke="white" stroke-width="12" opacity="0.6"/>
+    
+    <!-- Connection lines -->
+    <line x1="-35" y1="0" x2="-50" y2="0" stroke="white" stroke-width="10" opacity="0.5"/>
+    <line x1="35" y1="0" x2="50" y2="0" stroke="white" stroke-width="10" opacity="0.5"/>
+    
+    <!-- Center dot (focus point) -->
+    <circle cx="0" cy="0" r="18" fill="white"/>
+  </g>
+  
+  <defs>
+    <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#6366F1;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#8B5CF6;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+</svg>
