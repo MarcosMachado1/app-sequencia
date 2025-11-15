@@ -33,22 +33,20 @@ export default function AuthPage() {
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
+          options: {
+            data: {
+              full_name: username || email.split("@")[0],
+            }
+          }
         });
         if (error) throw error;
 
-        if (data.user) {
-          // Criar perfil do usuário
-          const { error: profileError } = await supabase
-            .from("user_profiles")
-            .insert({
-              id: data.user.id,
-              username: username || email.split("@")[0],
-            });
-
-          if (profileError) throw profileError;
-        }
-
-        toast.success("Conta criada! Verifique seu email.");
+        toast.success("Conta criada com sucesso! Redirecionando...");
+        
+        // Aguardar um momento para garantir que o perfil foi criado pelo trigger
+        setTimeout(() => {
+          window.location.href = "/dashboard";
+        }, 1500);
       }
     } catch (error: any) {
       toast.error(error.message || "Erro ao autenticar");

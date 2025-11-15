@@ -3,6 +3,7 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import Script from "next/script";
 import { Toaster } from "sonner";
+import { AuthProvider } from "@/contexts/AuthContext";
 import "./globals.css";
 // Import all available fonts for AI usage
 import "../lib/fonts";
@@ -50,7 +51,9 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-[#0A0A0A] text-white`}
       >
-        {children}
+        <AuthProvider>
+          {children}
+        </AuthProvider>
         <Toaster position="top-center" theme="dark" />
       </body>
     </html>
