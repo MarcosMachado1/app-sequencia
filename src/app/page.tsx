@@ -27,7 +27,7 @@ export default function Home() {
   };
 
   const handleCTA = () => {
-    window.location.href = "https://app-sequencia.vercel.app/";
+    router.push("/auth");
   };
 
   if (checking) {
