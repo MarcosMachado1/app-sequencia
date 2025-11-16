@@ -121,6 +121,18 @@ export default function AuthPage() {
               />
             </div>
 
+            {/* Reiniciando servidor */}
+            {/* Reiniciando servidor */}
+            {/* Reiniciando servidor */}
+            {/* Reiniciando servidor */}
+            {/* Reiniciando servidor */}
+            {/* Reiniciando servidor */}
+            {/* Reiniciando servidor */}
+            {/* Reiniciando servidor */}
+            {/* Reiniciando servidor */}
+            {/* Reiniciando servidor */}
+            {/* Reiniciando servidor */}
+            {/* Reiniciando servidor */}
             <Button
               type="submit"
               disabled={loading}
