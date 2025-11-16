@@ -63,134 +63,121 @@ export function HabitCard({ habit, onToggle, onRefresh }: HabitCardProps) {
     }
   };
 
+  const getStreakColor = (streak: number) => {
+    if (streak >= 30) return "from-purple-500 to-pink-500";
+    if (streak >= 14) return "from-orange-500 to-red-500";
+    if (streak >= 7) return "from-yellow-500 to-orange-500";
+    return "from-green-500 to-emerald-500";
+  };
+
   return (
-    <div 
-      className={`
-        bg-white rounded-2xl p-5 shadow-lg border-2 transition-all duration-300 cursor-pointer
-        ${habit.completed_today 
-          ? 'border-[oklch(0.65_0.20_145)] bg-gradient-to-br from-[oklch(0.65_0.20_145)]/5 to-white' 
-          : 'border-gray-200 hover:border-[oklch(0.45_0.15_265)] hover:shadow-xl'
-        }
-      `}
-      onClick={() => onToggle(habit.id, habit.completed_today)}
-    >
-      <div className="flex items-center justify-between">
-        {/* Left: Checkbox + Info */}
+    <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 hover:border-white/20 transition-all">
+      <div className="flex items-start justify-between mb-4">
         <div className="flex items-center gap-4 flex-1">
-          {/* Checkbox Grande e Visível */}
+          {/* Icon */}
           <div 
-            className={`
-              w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-300
-              ${habit.completed_today 
-                ? 'bg-[oklch(0.65_0.20_145)] shadow-lg shadow-[oklch(0.65_0.20_145)]/30' 
-                : 'bg-gray-100 hover:bg-[oklch(0.45_0.15_265)]/10'
-              }
-            `}
-            onClick={(e) => {
-              e.stopPropagation();
-              onToggle(habit.id, habit.completed_today);
+            className="w-12 h-12 rounded-xl flex items-center justify-center"
+            style={{ 
+              background: habit.color || "#6366f1",
+              boxShadow: `0 8px 24px ${habit.color || "#6366f1"}40`
             }}
           >
-            {habit.completed_today ? (
-              <svg className="w-7 h-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-              </svg>
-            ) : (
-              <div className="w-7 h-7 rounded-lg border-3 border-gray-300" />
-            )}
+            <Target className="w-6 h-6 text-white" />
           </div>
 
-          {/* Habit Info */}
+          {/* Info */}
           <div className="flex-1">
-            <h3 className="text-lg font-semibold text-gray-900 mb-0.5">
+            <h3 className="text-lg font-semibold text-white mb-1">
               {habit.title}
             </h3>
             {habit.description && (
-              <p className="text-sm text-gray-500">{habit.description}</p>
+              <p className="text-sm text-white/60">{habit.description}</p>
             )}
           </div>
         </div>
 
-        {/* Right: Streak + Actions */}
-        <div className="flex items-center gap-3">
-          {/* Streak Badge - DESTAQUE VISUAL */}
-          {habit.current_streak > 0 && (
-            <div className="flex items-center gap-2 bg-gradient-to-br from-[oklch(0.65_0.20_145)] to-[oklch(0.60_0.22_155)] rounded-xl px-3 py-2 shadow-md">
-              <Flame className="w-5 h-5 text-white" />
-              <div className="text-center">
-                <p className="text-xl font-bold text-white leading-none">
-                  {habit.current_streak}
-                </p>
-                <p className="text-[10px] text-white/80 leading-none mt-0.5">dias</p>
-              </div>
-            </div>
-          )}
+        {/* Actions */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="text-white/60 hover:text-white hover:bg-white/5"
+            >
+              <MoreVertical className="w-4 h-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="bg-[#1A1A2E] border-white/10">
+            <DropdownMenuItem
+              onClick={() => router.push(`/habit/${habit.id}`)}
+              className="text-white/80 hover:text-white focus:text-white focus:bg-white/5"
+            >
+              <BarChart3 className="w-4 h-4 mr-2" />
+              Ver Estatísticas
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => router.push(`/habit/${habit.id}/edit`)}
+              className="text-white/80 hover:text-white focus:text-white focus:bg-white/5"
+            >
+              <Edit className="w-4 h-4 mr-2" />
+              Editar
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={handleDelete}
+              disabled={isDeleting}
+              className="text-red-400 hover:text-red-300 focus:text-red-300 focus:bg-red-500/10"
+            >
+              <Trash2 className="w-4 h-4 mr-2" />
+              Excluir
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
 
-          {/* Menu Actions */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="text-gray-400 hover:text-gray-900 hover:bg-gray-100"
-              >
-                <MoreVertical className="w-5 h-5" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="bg-white border-gray-200">
-              <DropdownMenuItem
-                onClick={(e) => {
-                  e.stopPropagation();
-                  router.push(`/habit/${habit.id}`);
-                }}
-                className="text-gray-700 hover:text-gray-900 focus:text-gray-900 focus:bg-gray-100"
-              >
-                <BarChart3 className="w-4 h-4 mr-2" />
-                Ver Estatísticas
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={(e) => {
-                  e.stopPropagation();
-                  router.push(`/habit/${habit.id}/edit`);
-                }}
-                className="text-gray-700 hover:text-gray-900 focus:text-gray-900 focus:bg-gray-100"
-              >
-                <Edit className="w-4 h-4 mr-2" />
-                Editar
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleDelete();
-                }}
-                disabled={isDeleting}
-                className="text-red-600 hover:text-red-700 focus:text-red-700 focus:bg-red-50"
-              >
-                <Trash2 className="w-4 h-4 mr-2" />
-                Excluir
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+      {/* Stats */}
+      <div className="flex items-center gap-6 mb-4">
+        {/* Streak */}
+        <div className="flex items-center gap-2">
+          <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${getStreakColor(habit.current_streak)} flex items-center justify-center`}>
+            <Flame className="w-5 h-5 text-white" />
+          </div>
+          <div>
+            <p className="text-2xl font-bold text-white">
+              {habit.current_streak}
+            </p>
+            <p className="text-xs text-white/60">dias seguidos</p>
+          </div>
+        </div>
+
+        {/* Total */}
+        <div className="flex items-center gap-2">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center">
+            <TrendingUp className="w-5 h-5 text-white" />
+          </div>
+          <div>
+            <p className="text-2xl font-bold text-white">
+              {habit.total_completions}
+            </p>
+            <p className="text-xs text-white/60">vezes completo</p>
+          </div>
         </div>
       </div>
 
-      {/* Stats Footer - Minimalista */}
-      {habit.total_completions > 0 && (
-        <div className="flex items-center gap-4 mt-4 pt-4 border-t border-gray-100">
-          <div className="flex items-center gap-2 text-gray-500">
-            <TrendingUp className="w-4 h-4" />
-            <span className="text-sm font-medium">{habit.total_completions} vezes</span>
-          </div>
-          {habit.completed_today && (
-            <div className="flex items-center gap-1.5 text-[oklch(0.65_0.20_145)]">
-              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-              </svg>
-              <span className="text-sm font-medium">Completado hoje!</span>
-            </div>
-          )}
-        </div>
-      )}
+      {/* Checkbox */}
+      <div className="flex items-center gap-3 pt-4 border-t border-white/5">
+        <Checkbox
+          id={`habit-${habit.id}`}
+          checked={habit.completed_today}
+          onCheckedChange={() => onToggle(habit.id, habit.completed_today)}
+          className="w-6 h-6 border-2 data-[state=checked]:bg-green-500 data-[state=checked]:border-green-500"
+        />
+        <label
+          htmlFor={`habit-${habit.id}`}
+          className="text-sm text-white/80 cursor-pointer select-none"
+        >
+          {habit.completed_today ? "✅ Completado hoje!" : "Marcar como completo"}
+        </label>
+      </div>
     </div>
   );
 }

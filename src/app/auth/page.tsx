@@ -30,8 +30,7 @@ export default function AuthPage() {
         toast.success("Login realizado com sucesso!");
         window.location.href = "/dashboard";
       } else {
-        // Cadastro
-        const { data: authData, error: signUpError } = await supabase.auth.signUp({
+        const { data, error } = await supabase.auth.signUp({
           email,
           password,
           options: {
@@ -40,38 +39,16 @@ export default function AuthPage() {
             }
           }
         });
-        
-        if (signUpError) throw signUpError;
-        
-        if (authData.user) {
-          // Inserir perfil manualmente na tabela profiles
-          const { error: profileError } = await supabase
-            .from('profiles')
-            .insert({
-              id: authData.user.id,
-              email: authData.user.email,
-              full_name: username || email.split("@")[0],
-              created_at: new Date().toISOString(),
-              updated_at: new Date().toISOString()
-            });
+        if (error) throw error;
 
-          if (profileError) {
-            console.error("Erro ao criar perfil:", profileError);
-            // Não bloqueia o cadastro se o perfil já existir
-            if (profileError.code !== '23505') { // 23505 = duplicate key
-              throw profileError;
-            }
-          }
-
-          toast.success("Conta criada com sucesso! Redirecionando...");
-          
-          setTimeout(() => {
-            window.location.href = "/dashboard";
-          }, 1500);
-        }
+        toast.success("Conta criada com sucesso! Redirecionando...");
+        
+        // Aguardar um momento para garantir que o perfil foi criado pelo trigger
+        setTimeout(() => {
+          window.location.href = "/dashboard";
+        }, 1500);
       }
     } catch (error: any) {
-      console.error("Erro de autenticação:", error);
       toast.error(error.message || "Erro ao autenticar");
     } finally {
       setLoading(false);
@@ -144,6 +121,17 @@ export default function AuthPage() {
               />
             </div>
 
+            {/* Reiniciando servidor */}
+            {/* Reiniciando servidor */}
+            {/* Reiniciando servidor */}
+            {/* Reiniciando servidor */}
+            {/* Reiniciando servidor */}
+            {/* Reiniciando servidor */}
+            {/* Reiniciando servidor */}
+            {/* Reiniciando servidor */}
+            {/* Reiniciando servidor */}
+            {/* Reiniciando servidor */}
+            {/* Reiniciando servidor */}
             <Button
               type="submit"
               disabled={loading}
