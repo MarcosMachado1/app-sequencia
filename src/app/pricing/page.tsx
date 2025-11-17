@@ -44,7 +44,6 @@ export default function PricingPage() {
     try {
       setLoading(priceId);
 
-      // Criar sessão de checkout no backend
       const response = await fetch("/api/stripe/checkout", {
         method: "POST",
         headers: {
@@ -62,7 +61,7 @@ export default function PricingPage() {
         throw new Error(data.error || "Erro ao criar checkout");
       }
 
-      // Carrega a Stripe no navegador
+      // Carrega o Stripe no navegador
       const stripe = await stripePromise;
 
       if (!stripe) {
@@ -169,14 +168,14 @@ export default function PricingPage() {
             <Button
               onClick={() =>
                 handleSubscribe(
-                  process.env.NEXT_PUBLIC_STRIPE_P​RICE_ID_MONTHLY!,
+                  process.env.NEXT_PUBLIC_STRIPE_PRICE_ID_MONTHLY!,
                   "Mensal"
                 )
               }
               disabled={loading !== null}
               className="w-full bg-gradient-to-r from-[oklch(0.45_0.15_265)] to-[oklch(0.40_0.18_280)] hover:from-[oklch(0.40_0.18_280)] hover:to-[oklch(0.45_0.15_265)] text-white font-semibold py-6 text-lg rounded-xl shadow-lg"
             >
-              {loading === process.env.NEXT_PUBLIC_STRIPE_P​RICE_ID_MONTHLY ? (
+              {loading === process.env.NEXT_PUBLIC_STRIPE_PRICE_ID_MONTHLY ? (
                 <Loader2 className="w-5 h-5 animate-spin" />
               ) : (
                 <>
@@ -199,7 +198,9 @@ export default function PricingPage() {
                 <span className="text-5xl font-bold text-white">R$ 144</span>
                 <span className="text-white/80">/ano</span>
               </div>
-              <p className="text-sm text-white/70 mt-2">R$ 12/mês • Pague uma vez por ano</p>
+              <p className="text-sm text-white/70 mt-2">
+                R$ 12/mês • Pague uma vez por ano
+              </p>
             </div>
 
             <ul className="space-y-4 mb-8">
@@ -216,14 +217,14 @@ export default function PricingPage() {
             <Button
               onClick={() =>
                 handleSubscribe(
-                  process.env.NEXT_PUBLIC_STRIPE_P​RICE_ID_YEARLY!,
+                  process.env.NEXT_PUBLIC_STRIPE_PRICE_ID_YEARLY!,
                   "Anual"
                 )
               }
               disabled={loading !== null}
               className="w-full bg-white hover:bg-gray-100 text-[oklch(0.45_0.15_265)] font-semibold py-6 text-lg rounded-xl shadow-lg"
             >
-              {loading === process.env.NEXT_PUBLIC_STRIPE_P​RICE_ID_YEARLY ? (
+              {loading === process.env.NEXT_PUBLIC_STRIPE_PRICE_ID_YEARLY ? (
                 <Loader2 className="w-5 h-5 animate-spin" />
               ) : (
                 <>
