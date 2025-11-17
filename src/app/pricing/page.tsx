@@ -8,7 +8,10 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { loadStripe } from "@stripe/stripe-js";
 
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
+// Carrega o Stripe no front-end
+const stripePromise = loadStripe(
+  process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!
+);
 
 export default function PricingPage() {
   const router = useRouter();
@@ -20,7 +23,10 @@ export default function PricingPage() {
   }, []);
 
   const checkAuth = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
     if (!user) {
       router.push("/auth");
     } else {
@@ -38,7 +44,7 @@ export default function PricingPage() {
     try {
       setLoading(priceId);
 
-      // Criar sessão de checkout
+      // Criar sessão de checkout no backend
       const response = await fetch("/api/stripe/checkout", {
         method: "POST",
         headers: {
@@ -56,12 +62,14 @@ export default function PricingPage() {
         throw new Error(data.error || "Erro ao criar checkout");
       }
 
-      // Redirecionar para o Stripe Checkout
+      // Carrega a Stripe no navegador
       const stripe = await stripePromise;
+
       if (!stripe) {
         throw new Error("Stripe não carregou");
       }
 
+      // Redireciona para o Checkout
       const { error } = await stripe.redirectToCheckout({
         sessionId: data.sessionId,
       });
@@ -128,7 +136,8 @@ export default function PricingPage() {
             </span>
           </h2>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Desbloqueie todo o potencial do Sequencia e alcance seus objetivos com recursos premium
+            Desbloqueie todo o potencial do Sequencia e alcance seus objetivos
+            com recursos premium
           </p>
         </div>
 
@@ -142,7 +151,9 @@ export default function PricingPage() {
                 <span className="text-5xl font-bold text-gray-900">R$ 19</span>
                 <span className="text-gray-600">/mês</span>
               </div>
-              <p className="text-sm text-gray-500 mt-2">Cancele quando quiser</p>
+              <p className="text-sm text-gray-500 mt-2">
+                Cancele quando quiser
+              </p>
             </div>
 
             <ul className="space-y-4 mb-8">
@@ -157,7 +168,12 @@ export default function PricingPage() {
             </ul>
 
             <Button
-              onClick={() => handleSubscribe(process.env.NEXT_PUBLIC_STRIPE_PRICE_ID_MONTHLY!, "Mensal")}
+              onClick={() =>
+                handleSubscribe(
+                  process.env.NEXT_PUBLIC_STRIPE_PRICE_ID_MONTHLY!,
+                  "Mensal"
+                )
+              }
               disabled={loading !== null}
               className="w-full bg-gradient-to-r from-[oklch(0.45_0.15_265)] to-[oklch(0.40_0.18_280)] hover:from-[oklch(0.40_0.18_280)] hover:to-[oklch(0.45_0.15_265)] text-white font-semibold py-6 text-lg rounded-xl shadow-lg"
             >
@@ -172,9 +188,8 @@ export default function PricingPage() {
             </Button>
           </div>
 
-          {/* Plano Anual - DESTAQUE */}
+          {/* Plano Anual */}
           <div className="bg-gradient-to-br from-[oklch(0.45_0.15_265)] to-[oklch(0.40_0.18_280)] rounded-3xl p-8 shadow-2xl border-2 border-[oklch(0.45_0.15_265)] relative overflow-hidden">
-            {/* Badge de Melhor Valor */}
             <div className="absolute top-4 right-4 bg-amber-400 text-amber-900 px-3 py-1 rounded-full text-xs font-bold">
               ECONOMIZE 37%
             </div>
@@ -185,7 +200,9 @@ export default function PricingPage() {
                 <span className="text-5xl font-bold text-white">R$ 144</span>
                 <span className="text-white/80">/ano</span>
               </div>
-              <p className="text-sm text-white/70 mt-2">R$ 12/mês • Pague uma vez por ano</p>
+              <p className="text-sm text-white/70 mt-2">
+                R$ 12/mês • Pague uma vez por ano
+              </p>
             </div>
 
             <ul className="space-y-4 mb-8">
@@ -200,7 +217,12 @@ export default function PricingPage() {
             </ul>
 
             <Button
-              onClick={() => handleSubscribe(process.env.NEXT_PUBLIC_STRIPE_PRICE_ID_YEARLY!, "Anual")}
+              onClick={() =>
+                handleSubscribe(
+                  process.env.NEXT_PUBLIC_STRIPE_PRICE_ID_YEARLY!,
+                  "Anual"
+                )
+              }
               disabled={loading !== null}
               className="w-full bg-white hover:bg-gray-100 text-[oklch(0.45_0.15_265)] font-semibold py-6 text-lg rounded-xl shadow-lg"
             >
@@ -216,34 +238,40 @@ export default function PricingPage() {
           </div>
         </div>
 
-        {/* FAQ Section */}
+        {/* FAQ */}
         <div className="max-w-3xl mx-auto">
           <h3 className="text-2xl font-bold text-center text-gray-900 mb-8">
             Perguntas Frequentes
           </h3>
+
           <div className="space-y-6">
             <div className="bg-white rounded-2xl p-6 shadow-lg">
               <h4 className="font-semibold text-gray-900 mb-2">
                 Posso cancelar a qualquer momento?
               </h4>
               <p className="text-gray-600">
-                Sim! Você pode cancelar sua assinatura a qualquer momento através do portal de gerenciamento. Não há taxas de cancelamento.
+                Sim! Você pode cancelar sua assinatura a qualquer momento
+                através do portal de gerenciamento. Não há taxas de cancelamento.
               </p>
             </div>
+
             <div className="bg-white rounded-2xl p-6 shadow-lg">
               <h4 className="font-semibold text-gray-900 mb-2">
                 Como funciona o teste gratuito?
               </h4>
               <p className="text-gray-600">
-                Todos os novos usuários têm 7 dias de teste gratuito para experimentar todos os recursos premium antes de assinar.
+                Todos os novos usuários têm 7 dias de teste gratuito para
+                experimentar todos os recursos premium antes de assinar.
               </p>
             </div>
+
             <div className="bg-white rounded-2xl p-6 shadow-lg">
               <h4 className="font-semibold text-gray-900 mb-2">
                 Quais formas de pagamento são aceitas?
               </h4>
               <p className="text-gray-600">
-                Aceitamos cartões de crédito e débito através do Stripe, uma plataforma segura e confiável de pagamentos.
+                Aceitamos cartões de crédito e débito através do Stripe, uma
+                plataforma segura e confiável de pagamentos.
               </p>
             </div>
           </div>
@@ -259,3 +287,4 @@ export default function PricingPage() {
     </div>
   );
 }
+
