@@ -61,15 +61,17 @@ export default function PricingPage() {
       }
 
       // 🔧 PATCH APLICADO
-      const stripe = (await stripePromise) as unknown as import("@stripe/stripe-js").Stripe | null;
+      // Carrega o Stripe no front
+const stripe = (await stripePromise) as any;
 
-      if (!stripe) {
-        throw new Error("Stripe não carregou");
-      }
+if (!stripe || typeof stripe.redirectToCheckout !== "function") {
+  throw new Error("Stripe não carregou corretamente");
+}
 
-      const { error } = await stripe.redirectToCheckout({
-        sessionId: data.sessionId,
-      });
+const { error } = await stripe.redirectToCheckout({
+  sessionId: data.sessionId,
+});
+
 
       if (error) {
         throw error;
