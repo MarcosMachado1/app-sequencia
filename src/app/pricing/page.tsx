@@ -7,6 +7,8 @@ import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { loadStripe } from "@stripe/stripe-js";
+import { Stripe } from "@stripe/stripe-js";
+
 
 // Carrega o Stripe no front-end
 const stripePromise = loadStripe(
@@ -63,16 +65,12 @@ export default function PricingPage() {
       }
 
       // Carrega a Stripe no navegador
-      const stripe = await stripePromise;
+      const stripe = (await stripePromise) as Stripe;
 
-      if (!stripe) {
-        throw new Error("Stripe não carregou");
-      }
+const { error } = await stripe.redirectToCheckout({
+  sessionId: data.sessionId,
+});
 
-      // Redireciona para o Checkout
-      const { error } = await stripe.redirectToCheckout({
-        sessionId: data.sessionId,
-      });
 
       if (error) {
         throw error;
