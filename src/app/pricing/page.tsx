@@ -8,9 +8,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { loadStripe } from "@stripe/stripe-js";
 
-const stripePromise = loadStripe(
-  process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!
-);
+const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
 export default function PricingPage() {
   const router = useRouter();
@@ -22,10 +20,7 @@ export default function PricingPage() {
   }, []);
 
   const checkAuth = async () => {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
+    const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
       router.push("/auth");
     } else {
@@ -43,6 +38,7 @@ export default function PricingPage() {
     try {
       setLoading(priceId);
 
+      // Criar sessão de checkout
       const response = await fetch("/api/stripe/checkout", {
         method: "POST",
         headers: {
@@ -60,24 +56,19 @@ export default function PricingPage() {
         throw new Error(data.error || "Erro ao criar checkout");
       }
 
-      // 🔧 PATCH APLICADO
-      // Carrega o Stripe no front
-const stripe = (await stripePromise) as any;
+      // Redirecionar para o Stripe Checkout
+      const stripe = await stripePromise;
+      if (!stripe) {
+        throw new Error("Stripe não carregou");
+      }
 
-if (!stripe || typeof stripe.redirectToCheckout !== "function") {
-  throw new Error("Stripe não carregou corretamente");
-}
-
-const { error } = await stripe.redirectToCheckout({
-  sessionId: data.sessionId,
-});
-
+      const { error } = await stripe.redirectToCheckout({
+        sessionId: data.sessionId,
+      });
 
       if (error) {
         throw error;
       }
-      // 🔧 PATCH FIM
-
     } catch (error: any) {
       console.error("Erro ao processar assinatura:", error);
       toast.error(error.message || "Erro ao processar assinatura");
@@ -137,14 +128,13 @@ const { error } = await stripe.redirectToCheckout({
             </span>
           </h2>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Desbloqueie todo o potencial do Sequencia e alcance seus objetivos
-            com recursos premium
+            Desbloqueie todo o potencial do Sequencia e alcance seus objetivos com recursos premium
           </p>
         </div>
 
         {/* Pricing Cards */}
         <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto mb-16">
-          {/* Mensal */}
+          {/* Plano Mensal */}
           <div className="bg-white rounded-3xl p-8 shadow-xl border-2 border-gray-200 hover:border-[oklch(0.45_0.15_265)] transition-all duration-300">
             <div className="text-center mb-6">
               <h3 className="text-2xl font-bold text-gray-900 mb-2">Mensal</h3>
@@ -152,9 +142,7 @@ const { error } = await stripe.redirectToCheckout({
                 <span className="text-5xl font-bold text-gray-900">R$ 19</span>
                 <span className="text-gray-600">/mês</span>
               </div>
-              <p className="text-sm text-gray-500 mt-2">
-                Cancele quando quiser
-              </p>
+              <p className="text-sm text-gray-500 mt-2">Cancele quando quiser</p>
             </div>
 
             <ul className="space-y-4 mb-8">
@@ -169,12 +157,7 @@ const { error } = await stripe.redirectToCheckout({
             </ul>
 
             <Button
-              onClick={() =>
-                handleSubscribe(
-                  process.env.NEXT_PUBLIC_STRIPE_PRICE_ID_MONTHLY!,
-                  "Mensal"
-                )
-              }
+              onClick={() => handleSubscribe(process.env.NEXT_PUBLIC_STRIPE_PRICE_ID_MONTHLY!, "Mensal")}
               disabled={loading !== null}
               className="w-full bg-gradient-to-r from-[oklch(0.45_0.15_265)] to-[oklch(0.40_0.18_280)] hover:from-[oklch(0.40_0.18_280)] hover:to-[oklch(0.45_0.15_265)] text-white font-semibold py-6 text-lg rounded-xl shadow-lg"
             >
@@ -189,8 +172,9 @@ const { error } = await stripe.redirectToCheckout({
             </Button>
           </div>
 
-          {/* Anual */}
+          {/* Plano Anual - DESTAQUE */}
           <div className="bg-gradient-to-br from-[oklch(0.45_0.15_265)] to-[oklch(0.40_0.18_280)] rounded-3xl p-8 shadow-2xl border-2 border-[oklch(0.45_0.15_265)] relative overflow-hidden">
+            {/* Badge de Melhor Valor */}
             <div className="absolute top-4 right-4 bg-amber-400 text-amber-900 px-3 py-1 rounded-full text-xs font-bold">
               ECONOMIZE 37%
             </div>
@@ -201,9 +185,7 @@ const { error } = await stripe.redirectToCheckout({
                 <span className="text-5xl font-bold text-white">R$ 144</span>
                 <span className="text-white/80">/ano</span>
               </div>
-              <p className="text-sm text-white/70 mt-2">
-                R$ 12/mês • Pague uma vez por ano
-              </p>
+              <p className="text-sm text-white/70 mt-2">R$ 12/mês • Pague uma vez por ano</p>
             </div>
 
             <ul className="space-y-4 mb-8">
@@ -218,12 +200,7 @@ const { error } = await stripe.redirectToCheckout({
             </ul>
 
             <Button
-              onClick={() =>
-                handleSubscribe(
-                  process.env.NEXT_PUBLIC_STRIPE_PRICE_ID_YEARLY!,
-                  "Anual"
-                )
-              }
+              onClick={() => handleSubscribe(process.env.NEXT_PUBLIC_STRIPE_PRICE_ID_YEARLY!, "Anual")}
               disabled={loading !== null}
               className="w-full bg-white hover:bg-gray-100 text-[oklch(0.45_0.15_265)] font-semibold py-6 text-lg rounded-xl shadow-lg"
             >
@@ -239,46 +216,41 @@ const { error } = await stripe.redirectToCheckout({
           </div>
         </div>
 
-        {/* FAQ */}
+        {/* FAQ Section */}
         <div className="max-w-3xl mx-auto">
           <h3 className="text-2xl font-bold text-center text-gray-900 mb-8">
             Perguntas Frequentes
           </h3>
-
           <div className="space-y-6">
             <div className="bg-white rounded-2xl p-6 shadow-lg">
               <h4 className="font-semibold text-gray-900 mb-2">
                 Posso cancelar a qualquer momento?
               </h4>
               <p className="text-gray-600">
-                Sim! Você pode cancelar sua assinatura a qualquer momento
-                através do portal de gerenciamento. Não há taxas de cancelamento.
+                Sim! Você pode cancelar sua assinatura a qualquer momento através do portal de gerenciamento. Não há taxas de cancelamento.
               </p>
             </div>
-
             <div className="bg-white rounded-2xl p-6 shadow-lg">
               <h4 className="font-semibold text-gray-900 mb-2">
                 Como funciona o teste gratuito?
               </h4>
               <p className="text-gray-600">
-                Todos os novos usuários têm 7 dias de teste gratuito para
-                experimentar todos os recursos premium antes de assinar.
+                Todos os novos usuários têm 7 dias de teste gratuito para experimentar todos os recursos premium antes de assinar.
               </p>
             </div>
-
             <div className="bg-white rounded-2xl p-6 shadow-lg">
               <h4 className="font-semibold text-gray-900 mb-2">
                 Quais formas de pagamento são aceitas?
               </h4>
               <p className="text-gray-600">
-                Aceitamos cartões de crédito e débito através do Stripe, uma
-                plataforma segura e confiável de pagamentos.
+                Aceitamos cartões de crédito e débito através do Stripe, uma plataforma segura e confiável de pagamentos.
               </p>
             </div>
           </div>
         </div>
       </main>
 
+      {/* Footer */}
       <footer className="border-t border-gray-200 bg-white/80 backdrop-blur-xl mt-16">
         <div className="container mx-auto px-4 py-8 text-center text-gray-600">
           <p>© 2024 Sequencia. Todos os direitos reservados.</p>

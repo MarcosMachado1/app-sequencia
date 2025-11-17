@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
     // Processar eventos do Stripe
     switch (event.type) {
       case 'checkout.session.completed': {
-        const session: any = event.data.object;
+        const session = event.data.object as Stripe.Checkout.Session;
         
         if (session.mode === 'subscription') {
           const subscriptionId = session.subscription as string;
@@ -49,7 +49,7 @@ export async function POST(req: NextRequest) {
           }
 
           // Buscar detalhes da subscription
-          const subscription: any = await stripe.subscriptions.retrieve(subscriptionId);
+          const subscription = await stripe.subscriptions.retrieve(subscriptionId);
 
           // Salvar subscription no banco
           await supabase.from('subscriptions').upsert({
@@ -74,7 +74,7 @@ export async function POST(req: NextRequest) {
       }
 
       case 'customer.subscription.updated': {
-        const subscription: any = event.data.object;
+        const subscription = event.data.object as Stripe.Subscription;
         const customerId = subscription.customer as string;
 
         // Buscar user_id pelo customer_id
@@ -112,7 +112,7 @@ export async function POST(req: NextRequest) {
       }
 
       case 'customer.subscription.deleted': {
-        const subscription: any = event.data.object;
+        const subscription = event.data.object as Stripe.Subscription;
         const customerId = subscription.customer as string;
 
         // Buscar user_id pelo customer_id
