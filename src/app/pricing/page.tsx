@@ -7,8 +7,6 @@ import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { loadStripe } from "@stripe/stripe-js";
-import { Stripe } from "@stripe/stripe-js";
-
 
 // Carrega o Stripe no front-end
 const stripePromise = loadStripe(
@@ -65,12 +63,15 @@ export default function PricingPage() {
       }
 
       // Carrega a Stripe no navegador
-      const stripe = (await stripePromise) as Stripe;
+      const stripe = await stripePromise;
 
-const { error } = await stripe.redirectToCheckout({
-  sessionId: data.sessionId,
-});
+      if (!stripe) {
+        throw new Error("Stripe não carregou");
+      }
 
+      const { error } = await stripe.redirectToCheckout({
+        sessionId: data.sessionId,
+      });
 
       if (error) {
         throw error;
@@ -168,14 +169,14 @@ const { error } = await stripe.redirectToCheckout({
             <Button
               onClick={() =>
                 handleSubscribe(
-                  process.env.NEXT_PUBLIC_STRIPE_PRICE_ID_MONTHLY!,
+                  process.env.NEXT_PUBLIC_STRIPE_P​RICE_ID_MONTHLY!,
                   "Mensal"
                 )
               }
               disabled={loading !== null}
               className="w-full bg-gradient-to-r from-[oklch(0.45_0.15_265)] to-[oklch(0.40_0.18_280)] hover:from-[oklch(0.40_0.18_280)] hover:to-[oklch(0.45_0.15_265)] text-white font-semibold py-6 text-lg rounded-xl shadow-lg"
             >
-              {loading === process.env.NEXT_PUBLIC_STRIPE_PRICE_ID_MONTHLY ? (
+              {loading === process.env.NEXT_PUBLIC_STRIPE_P​RICE_ID_MONTHLY ? (
                 <Loader2 className="w-5 h-5 animate-spin" />
               ) : (
                 <>
@@ -198,9 +199,7 @@ const { error } = await stripe.redirectToCheckout({
                 <span className="text-5xl font-bold text-white">R$ 144</span>
                 <span className="text-white/80">/ano</span>
               </div>
-              <p className="text-sm text-white/70 mt-2">
-                R$ 12/mês • Pague uma vez por ano
-              </p>
+              <p className="text-sm text-white/70 mt-2">R$ 12/mês • Pague uma vez por ano</p>
             </div>
 
             <ul className="space-y-4 mb-8">
@@ -217,14 +216,14 @@ const { error } = await stripe.redirectToCheckout({
             <Button
               onClick={() =>
                 handleSubscribe(
-                  process.env.NEXT_PUBLIC_STRIPE_PRICE_ID_YEARLY!,
+                  process.env.NEXT_PUBLIC_STRIPE_P​RICE_ID_YEARLY!,
                   "Anual"
                 )
               }
               disabled={loading !== null}
               className="w-full bg-white hover:bg-gray-100 text-[oklch(0.45_0.15_265)] font-semibold py-6 text-lg rounded-xl shadow-lg"
             >
-              {loading === process.env.NEXT_PUBLIC_STRIPE_PRICE_ID_YEARLY ? (
+              {loading === process.env.NEXT_PUBLIC_STRIPE_P​RICE_ID_YEARLY ? (
                 <Loader2 className="w-5 h-5 animate-spin" />
               ) : (
                 <>
@@ -285,4 +284,3 @@ const { error } = await stripe.redirectToCheckout({
     </div>
   );
 }
-
