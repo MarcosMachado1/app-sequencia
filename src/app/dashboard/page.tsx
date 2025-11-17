@@ -16,12 +16,15 @@ import {
   Lightbulb,
   User,
   Menu,
-  X
+  X,
+  Lock,
+  Crown
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { CreateHabitDialog } from "@/components/dashboard/create-habit-dialog";
 import { HabitCard } from "@/components/dashboard/habit-card";
+import { useUserStatus } from "@/hooks/useUserStatus";
 
 type Habit = {
   id: string;
@@ -55,6 +58,9 @@ export default function DashboardPage() {
   const [user, setUser] = useState<any>(null);
   const [confettiElements, setConfettiElements] = useState<number[]>([]);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  
+  // Hook de status do usuário
+  const { isPremium, isTrialActive, needsPayment, daysRemaining, loading: statusLoading } = useUserStatus();
 
   useEffect(() => {
     checkAuth();
@@ -216,7 +222,23 @@ export default function DashboardPage() {
     return "Usuário";
   };
 
-  if (loading) {
+  const handleCreateHabitClick = () => {
+    if (needsPayment) {
+      toast.error("Assine o Premium para criar novos hábitos");
+      return;
+    }
+    setShowCreateDialog(true);
+  };
+
+  const handleCommunityClick = () => {
+    if (needsPayment) {
+      toast.error("Assine o Premium para acessar a Comunidade");
+      return;
+    }
+    router.push("/community");
+  };
+
+  if (loading || statusLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <Loader2 className="w-8 h-8 text-[oklch(0.45_0.15_265)] animate-spin" />
@@ -282,12 +304,14 @@ export default function DashboardPage() {
             Dicas Diárias
           </Button>
           <Button
-            onClick={() => router.push("/community")}
+            onClick={handleCommunityClick}
             variant="ghost"
             className="w-full justify-start text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+            disabled={needsPayment}
           >
             <Users className="w-5 h-5 mr-3" />
             Comunidade
+            {needsPayment && <Lock className="w-4 h-4 ml-auto" />}
           </Button>
           <Button
             onClick={() => router.push("/profile")}
@@ -371,14 +395,20 @@ export default function DashboardPage() {
               </Button>
               <Button
                 onClick={() => {
-                  router.push("/community");
-                  setSidebarOpen(false);
+                  if (!needsPayment) {
+                    router.push("/community");
+                    setSidebarOpen(false);
+                  } else {
+                    toast.error("Assine o Premium para acessar a Comunidade");
+                  }
                 }}
                 variant="ghost"
                 className="w-full justify-start text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+                disabled={needsPayment}
               >
                 <Users className="w-5 h-5 mr-3" />
                 Comunidade
+                {needsPayment && <Lock className="w-4 h-4 ml-auto" />}
               </Button>
               <Button
                 onClick={() => {
@@ -444,6 +474,15 @@ export default function DashboardPage() {
           </div>
         </header>
 
+        {/* Banner de Teste Gratuito */}
+        {isTrialActive && daysRemaining !== null && (
+          <div className="bg-gradient-to-r from-amber-500 to-orange-500 text-white px-4 py-3 text-center">
+            <p className="text-sm font-medium">
+              ⏰ Teste gratuito: {daysRemaining} {daysRemaining === 1 ? 'dia restante' : 'dias restantes'}
+            </p>
+          </div>
+        )}
+
         {/* Main Content Area */}
         <main className="flex-1 overflow-auto">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 max-w-4xl">
@@ -456,6 +495,30 @@ export default function DashboardPage() {
                 Continue construindo seus hábitos vencedores
               </p>
             </div>
+
+            {/* Paywall Card - Exibido quando needsPayment é true */}
+            {needsPayment && (
+              <div className="mb-8 bg-gradient-to-br from-amber-50 to-orange-50 border-2 border-amber-300 rounded-3xl p-8 shadow-xl">
+                <div className="text-center">
+                  <div className="w-16 h-16 rounded-full bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center mx-auto mb-4">
+                    <Crown className="w-8 h-8 text-white" />
+                  </div>
+                  <h3 className="text-2xl font-bold text-gray-900 mb-3">
+                    Seu teste gratuito de 7 dias expirou
+                  </h3>
+                  <p className="text-gray-700 mb-6 max-w-md mx-auto">
+                    Assine o Premium para continuar usando o Sequencia e acessar a Comunidade.
+                  </p>
+                  <Button
+                    onClick={() => router.push("/pricing")}
+                    className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-semibold px-8 py-6 text-lg rounded-xl shadow-lg"
+                  >
+                    <Crown className="w-5 h-5 mr-2" />
+                    Assinar Premium
+                  </Button>
+                </div>
+              </div>
+            )}
 
             {/* Stats Overview - Destaque para Streak */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
@@ -512,11 +575,13 @@ export default function DashboardPage() {
                     Comece criando seu primeiro hábito!
                   </p>
                   <Button
-                    onClick={() => setShowCreateDialog(true)}
+                    onClick={handleCreateHabitClick}
                     className="bg-[oklch(0.45_0.15_265)] hover:bg-[oklch(0.40_0.18_280)] text-white shadow-lg"
+                    disabled={needsPayment}
                   >
                     <Plus className="w-4 h-4 mr-2" />
                     Criar Primeiro Hábito
+                    {needsPayment && <Lock className="w-4 h-4 ml-2" />}
                   </Button>
                 </div>
               ) : (
@@ -536,11 +601,12 @@ export default function DashboardPage() {
             {/* Floating Action Button - Acesso Rápido */}
             {habits.length > 0 && (
               <Button
-                onClick={() => setShowCreateDialog(true)}
-                className="fixed bottom-6 right-6 sm:bottom-8 sm:right-8 w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-[oklch(0.45_0.15_265)] hover:bg-[oklch(0.40_0.18_280)] text-white shadow-2xl hover:shadow-3xl hover:scale-110 transition-all duration-300"
+                onClick={handleCreateHabitClick}
+                className="fixed bottom-6 right-6 sm:bottom-8 sm:right-8 w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-[oklch(0.45_0.15_265)] hover:bg-[oklch(0.40_0.18_280)] text-white shadow-2xl hover:shadow-3xl hover:scale-110 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                 size="icon"
+                disabled={needsPayment}
               >
-                <Plus className="w-6 h-6 sm:w-7 sm:h-7" />
+                {needsPayment ? <Lock className="w-6 h-6 sm:w-7 sm:h-7" /> : <Plus className="w-6 h-6 sm:w-7 sm:h-7" />}
               </Button>
             )}
           </div>

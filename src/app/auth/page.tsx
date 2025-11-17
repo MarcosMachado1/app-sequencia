@@ -79,7 +79,7 @@ export default function AuthPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-[#0A0A0A] via-[#1A1A2E] to-[#0A0A0A] flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="flex justify-center mb-8">
@@ -87,11 +87,11 @@ export default function AuthPage() {
         </div>
 
         {/* Card */}
-        <div className="bg-white rounded-3xl p-8 shadow-xl border border-gray-100">
-          <h2 className="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-2 text-center">
+        <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-2xl">
+          <h2 className="text-3xl font-bold text-white mb-2 text-center">
             {isLogin ? "Bem-vindo de volta" : "Crie sua conta"}
           </h2>
-          <p className="text-gray-600 text-center mb-8">
+          <p className="text-white/60 text-center mb-8">
             {isLogin
               ? "Entre para continuar sua sequência"
               : "Comece sua jornada de hábitos"}
@@ -100,7 +100,7 @@ export default function AuthPage() {
           <form onSubmit={handleAuth} className="space-y-5">
             {!isLogin && (
               <div className="space-y-2">
-                <Label htmlFor="username" className="text-gray-700 font-medium">
+                <Label htmlFor="username" className="text-white/90">
                   Nome de usuário
                 </Label>
                 <Input
@@ -108,14 +108,14 @@ export default function AuthPage() {
                   type="text"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  className="bg-gray-50 border-gray-200 text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:ring-indigo-500 h-12 transition-all"
+                  className="bg-white/5 border-white/10 text-white placeholder:text-white/40 focus:border-indigo-500/50 h-12"
                   placeholder="seu_usuario"
                 />
               </div>
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-gray-700 font-medium">
+              <Label htmlFor="email" className="text-white/90">
                 Email
               </Label>
               <Input
@@ -124,13 +124,13 @@ export default function AuthPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="bg-gray-50 border-gray-200 text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:ring-indigo-500 h-12 transition-all"
+                className="bg-white/5 border-white/10 text-white placeholder:text-white/40 focus:border-indigo-500/50 h-12"
                 placeholder="seu@email.com"
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-gray-700 font-medium">
+              <Label htmlFor="password" className="text-white/90">
                 Senha
               </Label>
               <Input
@@ -139,7 +139,7 @@ export default function AuthPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="bg-gray-50 border-gray-200 text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:ring-indigo-500 h-12 transition-all"
+                className="bg-white/5 border-white/10 text-white placeholder:text-white/40 focus:border-indigo-500/50 h-12"
                 placeholder="••••••••"
               />
             </div>
@@ -147,7 +147,7 @@ export default function AuthPage() {
             <Button
               type="submit"
               disabled={loading}
-              className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white h-12 text-base font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
+              className="w-full bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white h-12 text-base font-semibold shadow-lg shadow-indigo-500/25"
             >
               {loading ? (
                 <Loader2 className="w-5 h-5 animate-spin" />
@@ -162,18 +162,13 @@ export default function AuthPage() {
           <div className="mt-6 text-center">
             <button
               onClick={() => setIsLogin(!isLogin)}
-              className="text-gray-600 hover:text-indigo-600 transition-colors text-sm font-medium"
+              className="text-white/60 hover:text-white transition-colors text-sm"
             >
               {isLogin
                 ? "Não tem conta? Criar agora"
                 : "Já tem conta? Fazer login"}
             </button>
           </div>
-        </div>
-
-        {/* Decorative elements */}
-        <div className="mt-8 text-center text-sm text-gray-500">
-          <p>Design minimalista e premium</p>
         </div>
       </div>
     </div>
