@@ -8,7 +8,6 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { loadStripe } from "@stripe/stripe-js";
 
-// Carrega o Stripe no front-end
 const stripePromise = loadStripe(
   process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!
 );
@@ -61,8 +60,8 @@ export default function PricingPage() {
         throw new Error(data.error || "Erro ao criar checkout");
       }
 
-      // Carrega o Stripe no navegador
-      const stripe = await stripePromise;
+      // 🔧 PATCH APLICADO
+      const stripe = (await stripePromise) as unknown as import("@stripe/stripe-js").Stripe | null;
 
       if (!stripe) {
         throw new Error("Stripe não carregou");
@@ -75,6 +74,8 @@ export default function PricingPage() {
       if (error) {
         throw error;
       }
+      // 🔧 PATCH FIM
+
     } catch (error: any) {
       console.error("Erro ao processar assinatura:", error);
       toast.error(error.message || "Erro ao processar assinatura");
@@ -141,7 +142,7 @@ export default function PricingPage() {
 
         {/* Pricing Cards */}
         <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto mb-16">
-          {/* Plano Mensal */}
+          {/* Mensal */}
           <div className="bg-white rounded-3xl p-8 shadow-xl border-2 border-gray-200 hover:border-[oklch(0.45_0.15_265)] transition-all duration-300">
             <div className="text-center mb-6">
               <h3 className="text-2xl font-bold text-gray-900 mb-2">Mensal</h3>
@@ -186,7 +187,7 @@ export default function PricingPage() {
             </Button>
           </div>
 
-          {/* Plano Anual */}
+          {/* Anual */}
           <div className="bg-gradient-to-br from-[oklch(0.45_0.15_265)] to-[oklch(0.40_0.18_280)] rounded-3xl p-8 shadow-2xl border-2 border-[oklch(0.45_0.15_265)] relative overflow-hidden">
             <div className="absolute top-4 right-4 bg-amber-400 text-amber-900 px-3 py-1 rounded-full text-xs font-bold">
               ECONOMIZE 37%
@@ -276,7 +277,6 @@ export default function PricingPage() {
         </div>
       </main>
 
-      {/* Footer */}
       <footer className="border-t border-gray-200 bg-white/80 backdrop-blur-xl mt-16">
         <div className="container mx-auto px-4 py-8 text-center text-gray-600">
           <p>© 2024 Sequencia. Todos os direitos reservados.</p>
