@@ -49,7 +49,7 @@ export async function POST(req: NextRequest) {
           }
 
           // Buscar detalhes da subscription
-          const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+         const subscription: any = await stripe.subscriptions.retrieve(subscriptionId);
 
           // Salvar subscription no banco
           await supabase.from('subscriptions').upsert({
