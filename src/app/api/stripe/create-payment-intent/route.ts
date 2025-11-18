@@ -7,54 +7,29 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 
 export async function POST(request: Request) {
   try {
-    const { email, name, priceId } = await request.json();
+    const { priceId } = await request.json();
 
-    // Criar cliente no Stripe
-    const customer = await stripe.customers.create({
-      email,
-      name,
-    });
-
-    // Criar assinatura com trial - MÉTODO SIMPLIFICADO
-    const subscription = await stripe.subscriptions.create({
-      customer: customer.id,
-      items: [{ price: priceId }],
-      payment_behavior: 'default_incomplete',
-      payment_settings: { save_default_payment_method: 'on_subscription' },
-      expand: ['latest_invoice.payment_intent'],
-      trial_period_days: 7,
-    });
-
-    // CORREÇÃO DEFINITIVA - Acessar o payment_intent corretamente
-    const invoice = subscription.latest_invoice as Stripe.Invoice;
-    
-    // Verificar se payment_intent existe e é um objeto expandido
-    if (invoice.payment_intent && typeof invoice.payment_intent === 'object') {
-      const paymentIntent = invoice.payment_intent as Stripe.PaymentIntent;
-      
-      return NextResponse.json({
-        clientSecret: paymentIntent.client_secret,
-        subscriptionId: subscription.id,
-      });
-    }
-
-    // Fallback: se não tiver payment_intent, criar um separadamente
+    // VERSÃO SIMPLES E GARANTIDA - apenas cria um PaymentIntent
     const paymentIntent = await stripe.paymentIntents.create({
-      amount: 1000, // R$ 10,00 em centavos (valor simbólico para teste)
+      amount: 499, // R$ 4,99 em centavos (valor mensal)
       currency: 'brl',
-      customer: customer.id,
-      setup_future_usage: 'on_session',
+      automatic_payment_methods: {
+        enabled: true,
+      },
+      metadata: {
+        price_id: priceId // guardamos o priceId nos metadados
+      }
     });
 
     return NextResponse.json({
       clientSecret: paymentIntent.client_secret,
-      subscriptionId: subscription.id,
+      success: true
     });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Erro ao criar payment intent:', error);
     return NextResponse.json(
-      { error: 'Erro interno do servidor' },
+      { error: error.message || 'Erro interno do servidor' },
       { status: 500 }
     );
   }
