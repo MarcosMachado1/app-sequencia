@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { stripe } from '@/lib/stripe';
 import { createClient } from '@supabase/supabase-js';
 import Stripe from 'stripe';
-import type { Subscription } from 'stripe';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -50,7 +49,7 @@ export async function POST(req: NextRequest) {
           }
 
           // Buscar detalhes da subscription
-          const subscription: Subscription = await stripe.subscriptions.retrieve(subscriptionId);
+          const subscription: Stripe.Subscription = await stripe.subscriptions.retrieve(subscriptionId);
 
           // Salvar subscription no banco
           await supabase.from('subscriptions').upsert({
@@ -75,7 +74,7 @@ export async function POST(req: NextRequest) {
       }
 
       case 'customer.subscription.updated': {
-        const subscription = event.data.object as Subscription;
+        const subscription = event.data.object as Stripe.Subscription;
         const customerId = subscription.customer as string;
 
         // Buscar user_id pelo customer_id
@@ -113,7 +112,7 @@ export async function POST(req: NextRequest) {
       }
 
       case 'customer.subscription.deleted': {
-        const subscription = event.data.object as Subscription;
+        const subscription = event.data.object as Stripe.Subscription;
         const customerId = subscription.customer as string;
 
         // Buscar user_id pelo customer_id
