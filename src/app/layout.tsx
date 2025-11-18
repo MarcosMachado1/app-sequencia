@@ -8,8 +8,8 @@ import "./globals.css";
 // Import all available fonts for AI usage
 import "../lib/fonts";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
 });
 
