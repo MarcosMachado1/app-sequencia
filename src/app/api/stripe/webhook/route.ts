@@ -60,8 +60,8 @@ export async function POST(req: NextRequest) {
             price_id: subscription.items.data[0].price.id,
             quantity: subscription.items.data[0].quantity,
             cancel_at_period_end: subscription.cancel_at_period_end,
-            current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
-            current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
+            current_period_start: new Date((subscription as any).current_period_start * 1000).toISOString(),
+            current_period_end: new Date((subscription as any).current_period_end * 1000).toISOString(),
           });
 
           // Atualizar is_premium no perfil do usuário
@@ -98,8 +98,8 @@ export async function POST(req: NextRequest) {
           price_id: subscription.items.data[0].price.id,
           quantity: subscription.items.data[0].quantity,
           cancel_at_period_end: subscription.cancel_at_period_end,
-          current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
-          current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
+          current_period_start: new Date((subscription as any).current_period_start * 1000).toISOString(),
+          current_period_end: new Date((subscription as any).current_period_end * 1000).toISOString(),
         });
 
         // Atualizar is_premium baseado no status
