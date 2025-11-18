@@ -237,7 +237,7 @@ export default function Home() {
                     <span className="text-gray-600">Gráficos completos + calendário</span>
                   </li>
                   <li className="flex items-center gap-3">
-                    <Check className="w-5 h-5 text-green-500 font-bold" />
+                    <Check className="w-5 h-5 text-green-500" />
                     <span className="text-gray-900 font-medium">ACESSO COMPLETO À COMUNIDADE</span>
                   </li>
                   <li className="flex items-center gap-3">
