@@ -3,7 +3,7 @@ import Stripe from "stripe";
 import { supabase } from "@/lib/supabase";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2025-10-29.clover",
+  apiVersion: "2024-12-18.acacia",
 });
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
@@ -167,7 +167,7 @@ async function handlePaymentSucceeded(paymentIntent: Stripe.PaymentIntent) {
     return;
   }
 
-  const customerEmail = (customer as Stripe.Customer).email;
+  const customerEmail = customer.email;
 
   if (!customerEmail) {
     console.error("No email found for customer");
@@ -205,7 +205,7 @@ async function handlePaymentSucceeded(paymentIntent: Stripe.PaymentIntent) {
         email: customerEmail,
         isPremium: true,
         stripeCustomerId: customerId,
-        subscriptionStatus: "active",
+        subscriptionStatus: "trialing",
       });
 
     if (error) {
@@ -218,23 +218,7 @@ async function handlePaymentSucceeded(paymentIntent: Stripe.PaymentIntent) {
 
 async function handleInvoicePaymentSucceeded(invoice: Stripe.Invoice) {
   const customerId = invoice.customer as string;
-  
-  // CORREÇÃO DEFINITIVA: A propriedade 'subscription' não existe mais no Invoice
-  // Buscar subscription ativa do customer
-  let subscriptionId = null;
-  try {
-    const subscriptions = await stripe.subscriptions.list({
-      customer: customerId,
-      limit: 1,
-      status: 'active'
-    });
-    
-    if (subscriptions.data.length > 0) {
-      subscriptionId = subscriptions.data[0].id;
-    }
-  } catch (error) {
-    console.error("Error fetching subscription:", error);
-  }
+  const subscriptionId = invoice.subscription as string;
 
   console.log("Invoice payment succeeded:", { customerId, subscriptionId });
 
@@ -249,8 +233,6 @@ async function handleInvoicePaymentSucceeded(invoice: Stripe.Invoice) {
 
   if (error) {
     console.error("Error updating user after invoice payment:", error);
-  } else {
-    console.log(`User ${customerId} updated to premium after invoice payment`);
   }
 }
 
@@ -268,7 +250,7 @@ async function handleSubscriptionCreated(subscription: Stripe.Subscription) {
     return;
   }
 
-  const customerEmail = (customer as Stripe.Customer).email;
+  const customerEmail = customer.email;
 
   if (!customerEmail) {
     console.error("No email found for customer");
@@ -295,8 +277,6 @@ async function handleSubscriptionCreated(subscription: Stripe.Subscription) {
 
     if (error) {
       console.error("Error updating user subscription:", error);
-    } else {
-      console.log(`User ${customerEmail} subscription updated: ${status}`);
     }
   } else {
     // Criar novo usuário

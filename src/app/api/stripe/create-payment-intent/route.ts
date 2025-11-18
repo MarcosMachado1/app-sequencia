@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2025-10-29.clover',
+  apiVersion: '2024-12-18.acacia',
 });
 
 export async function POST(req: NextRequest) {
@@ -35,25 +35,29 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // **CORREÇÃO DEFINITIVA** - Criar PaymentIntent diretamente
-    const paymentIntent = await stripe.paymentIntents.create({
-      amount: 499, // R$ 4,99 em centavos
-      currency: 'brl',
+    // Criar assinatura com trial de 7 dias
+    const subscription = await stripe.subscriptions.create({
       customer: customer.id,
-      automatic_payment_methods: {
-        enabled: true,
+      items: [
+        {
+          price: process.env.STRIPE_PRICE_ID!, // ID do preço mensal no Stripe
+        },
+      ],
+      trial_period_days: 7,
+      payment_behavior: 'default_incomplete',
+      payment_settings: {
+        save_default_payment_method: 'on_subscription',
       },
-      metadata: {
-        trial_days: '7',
-        source: 'sequencia_app'
-      },
+      expand: ['latest_invoice.payment_intent'],
     });
+
+    const invoice = subscription.latest_invoice as Stripe.Invoice;
+    const paymentIntent = invoice.payment_intent as Stripe.PaymentIntent;
 
     return NextResponse.json({
       clientSecret: paymentIntent.client_secret,
+      subscriptionId: subscription.id,
       customerId: customer.id,
-      // **CORREÇÃO** - Não precisa mais do subscriptionId aqui
-      // A assinatura será criada depois no webhook quando o pagamento for confirmado
     });
   } catch (error: any) {
     console.error('Erro ao criar payment intent:', error);

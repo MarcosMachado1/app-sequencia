@@ -26,6 +26,13 @@ export default function Home() {
     }
   };
 
+  const scrollToPlans = () => {
+    const element = document.getElementById('plans');
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   if (checking) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -74,7 +81,7 @@ export default function Home() {
 
             <div className="pt-6">
               <Button
-                onClick={() => router.push("/auth")}
+                onClick={scrollToPlans}
                 size="lg"
                 className="bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white shadow-lg text-lg px-8 h-14 rounded-xl"
               >
@@ -167,7 +174,7 @@ export default function Home() {
           </section>
 
           {/* Seção Planos */}
-          <section className="mb-32">
+          <section id="plans" className="mb-32">
             <div className="text-center mb-16">
               <h2 className="text-4xl font-bold text-gray-900 mb-4">
                 Escolha Seu Plano de Comunidade
