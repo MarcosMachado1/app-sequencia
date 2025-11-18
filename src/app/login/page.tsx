@@ -17,8 +17,12 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
+  // Corrige o problema de hidratação
   useEffect(() => {
+    setMounted(true);
+    
     // Pre-preencher email se vier da URL
     const emailParam = searchParams.get("email");
     if (emailParam) {
@@ -53,6 +57,20 @@ export default function LoginPage() {
       setLoading(false);
     }
   };
+
+  // Evita renderização no servidor com useSearchParams
+  if (!mounted) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 flex items-center justify-center px-4">
+        <div className="w-full max-w-md">
+          <div className="bg-white p-8 rounded-2xl shadow-xl border border-gray-200 text-center">
+            <Loader2 className="w-8 h-8 animate-spin mx-auto text-indigo-500" />
+            <p className="mt-4 text-gray-600">Carregando...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 flex items-center justify-center px-4">
