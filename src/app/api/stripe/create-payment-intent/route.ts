@@ -51,8 +51,8 @@ export async function POST(req: NextRequest) {
       expand: ['latest_invoice.payment_intent'],
     });
 
-    const invoice = subscription.latest_invoice as Stripe.Invoice;
-    const paymentIntent = invoice.payment_intent as Stripe.PaymentIntent;
+const invoice = await stripe.invoices.retrieve(subscription.latest_invoice as string);
+const paymentIntent = await stripe.paymentIntents.retrieve(invoice.payment_intent as string);
 
     return NextResponse.json({
       clientSecret: paymentIntent.client_secret,
