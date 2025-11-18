@@ -71,7 +71,7 @@ export default function CheckoutPremiumPage() {
         throw new Error("Stripe não carregou");
       }
 
-      const { error } = await stripe.redirectToCheckout({
+      const { error } = await (stripe as any).redirectToCheckout({
         sessionId: data.sessionId,
       });
 
