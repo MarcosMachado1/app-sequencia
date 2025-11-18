@@ -167,7 +167,7 @@ async function handlePaymentSucceeded(paymentIntent: Stripe.PaymentIntent) {
     return;
   }
 
-  const customerEmail = customer.email;
+  const customerEmail = (customer as Stripe.Customer).email;
 
   if (!customerEmail) {
     console.error("No email found for customer");
@@ -205,7 +205,7 @@ async function handlePaymentSucceeded(paymentIntent: Stripe.PaymentIntent) {
         email: customerEmail,
         isPremium: true,
         stripeCustomerId: customerId,
-        subscriptionStatus: "trialing",
+        subscriptionStatus: "active",
       });
 
     if (error) {
@@ -218,7 +218,23 @@ async function handlePaymentSucceeded(paymentIntent: Stripe.PaymentIntent) {
 
 async function handleInvoicePaymentSucceeded(invoice: Stripe.Invoice) {
   const customerId = invoice.customer as string;
-  const subscriptionId = invoice.subscription as string;
+  
+  // CORREÇÃO DEFINITIVA: A propriedade 'subscription' não existe mais no Invoice
+  // Buscar subscription ativa do customer
+  let subscriptionId = null;
+  try {
+    const subscriptions = await stripe.subscriptions.list({
+      customer: customerId,
+      limit: 1,
+      status: 'active'
+    });
+    
+    if (subscriptions.data.length > 0) {
+      subscriptionId = subscriptions.data[0].id;
+    }
+  } catch (error) {
+    console.error("Error fetching subscription:", error);
+  }
 
   console.log("Invoice payment succeeded:", { customerId, subscriptionId });
 
@@ -233,6 +249,8 @@ async function handleInvoicePaymentSucceeded(invoice: Stripe.Invoice) {
 
   if (error) {
     console.error("Error updating user after invoice payment:", error);
+  } else {
+    console.log(`User ${customerId} updated to premium after invoice payment`);
   }
 }
 
@@ -250,7 +268,7 @@ async function handleSubscriptionCreated(subscription: Stripe.Subscription) {
     return;
   }
 
-  const customerEmail = customer.email;
+  const customerEmail = (customer as Stripe.Customer).email;
 
   if (!customerEmail) {
     console.error("No email found for customer");
@@ -277,6 +295,8 @@ async function handleSubscriptionCreated(subscription: Stripe.Subscription) {
 
     if (error) {
       console.error("Error updating user subscription:", error);
+    } else {
+      console.log(`User ${customerEmail} subscription updated: ${status}`);
     }
   } else {
     // Criar novo usuário
