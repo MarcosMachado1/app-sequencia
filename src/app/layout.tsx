@@ -8,14 +8,14 @@ import "./globals.css";
 // Import all available fonts for AI usage
 import "../lib/fonts";
 
-const inter = Inter({ subsets: ["latin"] });
-  variable: "--font-geist-sans",
+const inter = Inter({ 
   subsets: ["latin"],
+  variable: "--font-inter",
 });
 
-const robotoMono = Roboto_Mono({ subsets: ["latin"] });
-  variable: "--font-geist-mono",
+const robotoMono = Roboto_Mono({ 
   subsets: ["latin"],
+  variable: "--font-roboto-mono",
 });
 
 export const metadata: Metadata = {
@@ -49,7 +49,7 @@ export default function RootLayout({
         <link rel="apple-touch-icon" href="/icon.svg" />
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-[#0A0A0A] text-white`}
+        className={`${inter.variable} ${robotoMono.variable} antialiased bg-[#0A0A0A] text-white`}
       >
         <AuthProvider>
           {children}
