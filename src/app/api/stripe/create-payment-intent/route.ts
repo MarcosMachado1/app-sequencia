@@ -1,35 +1,68 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2025-10-29.clover',
+  apiVersion: '2024-12-18.acacia',
 });
 
-export async function POST(request: Request) {
+export async function POST(req: NextRequest) {
   try {
-    const { priceId } = await request.json();
+    const { email, name } = await req.json();
 
-    // VERSÃO SIMPLES E GARANTIDA - apenas cria um PaymentIntent
-    const paymentIntent = await stripe.paymentIntents.create({
-      amount: 499, // R$ 4,99 em centavos (valor mensal)
-      currency: 'brl',
-      automatic_payment_methods: {
-        enabled: true,
-      },
-      metadata: {
-        price_id: priceId // guardamos o priceId nos metadados
-      }
+    if (!email) {
+      return NextResponse.json(
+        { error: 'Email é obrigatório' },
+        { status: 400 }
+      );
+    }
+
+    // Criar ou buscar cliente no Stripe
+    let customer;
+    const existingCustomers = await stripe.customers.list({
+      email,
+      limit: 1,
     });
+
+    if (existingCustomers.data.length > 0) {
+      customer = existingCustomers.data[0];
+    } else {
+      customer = await stripe.customers.create({
+        email,
+        name: name || undefined,
+        metadata: {
+          source: 'sequencia_app',
+        },
+      });
+    }
+
+    // Criar assinatura com trial de 7 dias
+    const subscription = await stripe.subscriptions.create({
+      customer: customer.id,
+      items: [
+        {
+          price: process.env.STRIPE_PRICE_ID!, // ID do preço mensal no Stripe
+        },
+      ],
+      trial_period_days: 7,
+      payment_behavior: 'default_incomplete',
+      payment_settings: {
+        save_default_payment_method: 'on_subscription',
+      },
+      expand: ['latest_invoice.payment_intent'],
+    });
+
+    const invoice = subscription.latest_invoice as Stripe.Invoice;
+    const paymentIntent = invoice.payment_intent as Stripe.PaymentIntent;
 
     return NextResponse.json({
       clientSecret: paymentIntent.client_secret,
-      success: true
+      subscriptionId: subscription.id,
+      customerId: customer.id,
     });
-
   } catch (error: any) {
     console.error('Erro ao criar payment intent:', error);
     return NextResponse.json(
-      { error: error.message || 'Erro interno do servidor' },
+      { error: error.message || 'Erro ao processar pagamento' },
       { status: 500 }
     );
   }
