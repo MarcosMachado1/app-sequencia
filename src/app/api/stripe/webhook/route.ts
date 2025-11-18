@@ -1,156 +1,126 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { stripe } from '@/lib/stripe';
-import { createClient } from '@supabase/supabase-js';
-import Stripe from 'stripe';
+import { NextRequest, NextResponse } from "next/server";
+import Stripe from "stripe";
+import { supabase } from "@/lib/supabase";
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-const supabase = createClient(supabaseUrl, supabaseServiceKey);
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+  apiVersion: "2024-12-18.acacia",
+});
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.text();
-    const signature = req.headers.get('stripe-signature');
-
-    if (!signature) {
-      return NextResponse.json(
-        { error: 'Assinatura do webhook ausente' },
-        { status: 400 }
-      );
-    }
+    const signature = req.headers.get("stripe-signature")!;
 
     let event: Stripe.Event;
 
     try {
       event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
     } catch (err: any) {
-      console.error('Erro ao verificar webhook:', err.message);
+      console.error("Webhook signature verification failed:", err.message);
       return NextResponse.json(
-        { error: `Webhook Error: ${err.message}` },
+        { error: "Webhook signature verification failed" },
         { status: 400 }
       );
     }
 
-    // Processar eventos do Stripe
+    // Processar eventos
     switch (event.type) {
-      case 'checkout.session.completed': {
+      case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session;
-        
-        if (session.mode === 'subscription') {
-          const subscriptionId = session.subscription as string;
-          const customerId = session.customer as string;
-          const userId = session.metadata?.user_id;
-
-          if (!userId) {
-            console.error('User ID não encontrado nos metadados');
-            break;
-          }
-
-          // Buscar detalhes da subscription
-          const subscription: Stripe.Subscription = await stripe.subscriptions.retrieve(subscriptionId);
-
-          // Salvar subscription no banco
-          await supabase.from('subscriptions').upsert({
-            user_id: userId,
-            stripe_subscription_id: subscriptionId,
-            stripe_customer_id: customerId,
-            status: subscription.status,
-            price_id: subscription.items.data[0].price.id,
-            quantity: subscription.items.data[0].quantity,
-            cancel_at_period_end: subscription.cancel_at_period_end,
-            current_period_start: new Date((subscription as any).current_period_start * 1000).toISOString(),
-            current_period_end: new Date((subscription as any).current_period_end * 1000).toISOString(),
-          });
-
-          // Atualizar is_premium no perfil do usuário
-          await supabase
-            .from('profiles')
-            .update({ is_premium: true })
-            .eq('id', userId);
-        }
+        await handleCheckoutCompleted(session);
         break;
       }
 
-      case 'customer.subscription.updated': {
+      case "customer.subscription.updated": {
         const subscription = event.data.object as Stripe.Subscription;
-        const customerId = subscription.customer as string;
-
-        // Buscar user_id pelo customer_id
-        const { data: customer } = await supabase
-          .from('customers')
-          .select('user_id')
-          .eq('stripe_customer_id', customerId)
-          .single();
-
-        if (!customer) {
-          console.error('Customer não encontrado:', customerId);
-          break;
-        }
-
-        // Atualizar subscription
-        await supabase.from('subscriptions').upsert({
-          user_id: customer.user_id,
-          stripe_subscription_id: subscription.id,
-          stripe_customer_id: customerId,
-          status: subscription.status,
-          price_id: subscription.items.data[0].price.id,
-          quantity: subscription.items.data[0].quantity,
-          cancel_at_period_end: subscription.cancel_at_period_end,
-          current_period_start: new Date((subscription as any).current_period_start * 1000).toISOString(),
-          current_period_end: new Date((subscription as any).current_period_end * 1000).toISOString(),
-        });
-
-        // Atualizar is_premium baseado no status
-        const isPremium = ['active', 'trialing'].includes(subscription.status);
-        await supabase
-          .from('profiles')
-          .update({ is_premium: isPremium })
-          .eq('id', customer.user_id);
+        await handleSubscriptionUpdated(subscription);
         break;
       }
 
-      case 'customer.subscription.deleted': {
+      case "customer.subscription.deleted": {
         const subscription = event.data.object as Stripe.Subscription;
-        const customerId = subscription.customer as string;
-
-        // Buscar user_id pelo customer_id
-        const { data: customer } = await supabase
-          .from('customers')
-          .select('user_id')
-          .eq('stripe_customer_id', customerId)
-          .single();
-
-        if (!customer) {
-          console.error('Customer não encontrado:', customerId);
-          break;
-        }
-
-        // Atualizar status da subscription
-        await supabase
-          .from('subscriptions')
-          .update({ status: 'canceled' })
-          .eq('user_id', customer.user_id);
-
-        // Remover is_premium
-        await supabase
-          .from('profiles')
-          .update({ is_premium: false })
-          .eq('id', customer.user_id);
+        await handleSubscriptionDeleted(subscription);
         break;
       }
 
       default:
-        console.log(`Evento não tratado: ${event.type}`);
+        console.log(`Unhandled event type: ${event.type}`);
     }
 
     return NextResponse.json({ received: true });
   } catch (error: any) {
-    console.error('Erro ao processar webhook:', error);
+    console.error("Webhook error:", error);
     return NextResponse.json(
-      { error: error.message || 'Erro ao processar webhook' },
+      { error: error.message || "Webhook error" },
       { status: 500 }
     );
+  }
+}
+
+async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
+  const userId = session.metadata?.userId;
+  const customerEmail = session.customer_email;
+  const customerId = session.customer as string;
+
+  if (!userId) {
+    console.error("UserId not found in session metadata");
+    return;
+  }
+
+  // Atualizar usuário no Supabase
+  const { error } = await supabase
+    .from("users")
+    .update({
+      isPremium: true,
+      stripeCustomerId: customerId,
+      subscriptionStatus: "active",
+      email: customerEmail,
+    })
+    .eq("id", userId);
+
+  if (error) {
+    console.error("Error updating user:", error);
+  } else {
+    console.log(`User ${userId} upgraded to premium`);
+    // TODO: Enviar email de boas-vindas premium
+  }
+}
+
+async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
+  const customerId = subscription.customer as string;
+  const status = subscription.status;
+
+  // Atualizar status da assinatura
+  const { error } = await supabase
+    .from("users")
+    .update({
+      subscriptionStatus: status,
+      isPremium: status === "active" || status === "trialing",
+    })
+    .eq("stripeCustomerId", customerId);
+
+  if (error) {
+    console.error("Error updating subscription:", error);
+  }
+}
+
+async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
+  const customerId = subscription.customer as string;
+
+  // Rebaixar para gratuito
+  const { error } = await supabase
+    .from("users")
+    .update({
+      isPremium: false,
+      subscriptionStatus: "canceled",
+    })
+    .eq("stripeCustomerId", customerId);
+
+  if (error) {
+    console.error("Error canceling subscription:", error);
+  } else {
+    console.log(`Subscription canceled for customer ${customerId}`);
   }
 }

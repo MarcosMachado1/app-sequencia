@@ -6,9 +6,6 @@ import { Check, Crown, Loader2, Sparkles, Zap } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { loadStripe, type Stripe } from "@stripe/stripe-js";
-
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
 export default function PricingPage() {
   const router = useRouter();
@@ -21,24 +18,20 @@ export default function PricingPage() {
 
   const checkAuth = async () => {
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      router.push("/auth");
-    } else {
-      setUser(user);
-    }
+    setUser(user);
   };
 
   const handleSubscribe = async (priceId: string, planName: string) => {
-    if (!user) {
-      toast.error("Você precisa estar logado para assinar");
-      router.push("/auth");
-      return;
-    }
-
     try {
       setLoading(priceId);
 
-      // Criar sessão de checkout
+      // Se não estiver logado, redirecionar para checkout premium
+      if (!user) {
+        router.push("/checkout-premium");
+        return;
+      }
+
+      // Se estiver logado, criar sessão de checkout
       const response = await fetch("/api/stripe/checkout", {
         method: "POST",
         headers: {
@@ -57,18 +50,7 @@ export default function PricingPage() {
       }
 
       // Redirecionar para o Stripe Checkout
-      const stripe = await stripePromise;
-      if (!stripe) {
-        throw new Error("Stripe não carregou");
-      }
-
-      const { error } = await (stripe as any).redirectToCheckout({
-        sessionId: data.sessionId,
-      });
-
-      if (error) {
-        throw error;
-      }
+      window.location.href = data.url;
     } catch (error: any) {
       console.error("Erro ao processar assinatura:", error);
       toast.error(error.message || "Erro ao processar assinatura");
@@ -185,15 +167,15 @@ export default function PricingPage() {
             <ul className="space-y-3 mb-8">
               <li className="flex items-center">
                 <Check className="w-5 h-5 text-green-500 mr-3" />
-                <span>Tudo do Premium</span>
+                <span className="text-slate-600 dark:text-slate-300">Tudo do Premium</span>
               </li>
               <li className="flex items-center">
                 <Check className="w-5 h-5 text-green-500 mr-3" />
-                <span>Recursos avançados</span>
+                <span className="text-slate-600 dark:text-slate-300">Recursos avançados</span>
               </li>
               <li className="flex items-center">
                 <Check className="w-5 h-5 text-green-500 mr-3" />
-                <span>Suporte 24/7</span>
+                <span className="text-slate-600 dark:text-slate-300">Suporte 24/7</span>
               </li>
             </ul>
 
