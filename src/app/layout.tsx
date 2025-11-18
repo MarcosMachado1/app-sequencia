@@ -8,12 +8,12 @@ import "./globals.css";
 // Import all available fonts for AI usage
 import "../lib/fonts";
 
-const geistSans = Geist({
+const inter = Inter({ subsets: ["latin"] });
   variable: "--font-geist-sans",
   subsets: ["latin"],
 });
 
-const geistMono = Geist_Mono({
+const robotoMono = Roboto_Mono({ subsets: ["latin"] });
   variable: "--font-geist-mono",
   subsets: ["latin"],
 });
