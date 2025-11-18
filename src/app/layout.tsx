@@ -49,7 +49,7 @@ export default function RootLayout({
         <link rel="apple-touch-icon" href="/icon.svg" />
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-[#0A0A0A] text-white`}
+        className={`${inter.variable} ${robotoMono.variable} antialiased bg-[#0A0A0A] text-white`}
       >
         <AuthProvider>
           {children}
