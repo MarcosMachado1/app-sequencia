@@ -35,29 +35,25 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // Criar assinatura com trial de 7 dias
-    const subscription = await stripe.subscriptions.create({
+    // **CORREÇÃO DEFINITIVA** - Criar PaymentIntent diretamente
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount: 499, // R$ 4,99 em centavos
+      currency: 'brl',
       customer: customer.id,
-      items: [
-        {
-          price: process.env.STRIPE_PRICE_ID!, // ID do preço mensal no Stripe
-        },
-      ],
-      trial_period_days: 7,
-      payment_behavior: 'default_incomplete',
-      payment_settings: {
-        save_default_payment_method: 'on_subscription',
+      automatic_payment_methods: {
+        enabled: true,
       },
-      expand: ['latest_invoice.payment_intent'],
+      metadata: {
+        trial_days: '7',
+        source: 'sequencia_app'
+      },
     });
-
-    const invoice = subscription.latest_invoice as Stripe.Invoice;
-    const paymentIntent = invoice.payment_intent as Stripe.PaymentIntent;
 
     return NextResponse.json({
       clientSecret: paymentIntent.client_secret,
-      subscriptionId: subscription.id,
       customerId: customer.id,
+      // **CORREÇÃO** - Não precisa mais do subscriptionId aqui
+      // A assinatura será criada depois no webhook quando o pagamento for confirmado
     });
   } catch (error: any) {
     console.error('Erro ao criar payment intent:', error);
