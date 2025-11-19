@@ -5,8 +5,6 @@ import Script from "next/script";
 import { Toaster } from "sonner";
 import { AuthProvider } from "@/contexts/AuthContext";
 import "./globals.css";
-// Import all available fonts for AI usage
-import "../lib/fonts";
 
 const inter = Inter({
   variable: "--font-inter",
